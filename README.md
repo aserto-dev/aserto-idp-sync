@@ -87,13 +87,13 @@ You can interact with the service via REST or gRPC API calls.
 #### gRPC example using grpcurl
 
 ```
-grpcurl -insecure -d '{"email_address": "gert.drapers@live.com"}' localhost:8282 idpsync.v1.IDPSync.SyncUser
+grpcurl -insecure -d '{"email_address": "demo@aserto.com"}' localhost:8282 idpsync.v1.IDPSync.SyncUser
 ```
 
 
 #### http REST example using curl 
 
 ```
-curl -k -d '{"email_address": "gert.drapers@live.com"}' -X POST https://localhost:8383/api/v1/sync/user
+curl -k -d '{"email_address": "demo@aserto.com"}' -X POST https://localhost:8383/api/v1/sync/user
 ```
 
