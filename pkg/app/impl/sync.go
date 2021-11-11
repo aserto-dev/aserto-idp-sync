@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
 
@@ -82,7 +81,10 @@ func (s *IDPSync) upsert(email string, user *api.User) (*api.User, error) {
 
 	var newUser *api.User
 	if err != nil || identResp == nil || identResp.Id == "" {
-		user.Id = uuid.New().String()
+		if s.cfg.Directory.GenerateUserID {
+			user.Id = "" // Providing an empty user.ID will make directory.CreateUser() generate a stable ID (lowercase uuid) for the user
+		}
+
 		resp, err := c.Directory.CreateUser(ctx, &directory.CreateUserRequest{
 			User: user,
 		})

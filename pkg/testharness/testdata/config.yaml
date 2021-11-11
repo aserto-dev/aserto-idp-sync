@@ -33,3 +33,4 @@ directory:
   host_address: ""
   tenant_id: ""
   directory_api_key: ""
+  generate_user_id: false 

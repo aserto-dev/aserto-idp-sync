@@ -53,6 +53,7 @@ directory:
   host_address: "authorizer.prod.aserto.com:8443"
   tenant_id: "<<<redacted>>>"
   directory_api_key: "<<<redacted>>>"
+  generate_user_id: false 
 
 ```
 

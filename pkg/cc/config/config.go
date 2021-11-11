@@ -49,6 +49,7 @@ type Config struct {
 		HostAddress     string `json:"host_address"`
 		TenantID        string `json:"tenant_id"`
 		DirectoryAPIKey string `json:"directory_api_key"`
+		GenerateUserID  bool   `json:"generate_user_id"`
 	}
 }
 
@@ -93,6 +94,7 @@ func NewConfig(configPath Path, log *zerolog.Logger, overrides Overrider, certsG
 	v.SetDefault("api.grpc.listen_address", "0.0.0.0:8282")
 	v.SetDefault("api.gateway.listen_address", "0.0.0.0:8383")
 	v.SetDefault("api.health.listen_address", "0.0.0.0:8484")
+	v.SetDefault("directory.generate_user_id", false)
 
 	configExists, err := fileExists(file)
 	if err != nil {

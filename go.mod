@@ -8,7 +8,6 @@ require (
 	github.com/aserto-dev/go-grpc v0.0.19
 	github.com/aserto-dev/go-utils v0.0.12
 	github.com/aserto-dev/mage-loot v0.4.13
-	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0
 	github.com/hashicorp/go-multierror v1.1.1
