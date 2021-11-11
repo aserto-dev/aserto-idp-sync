@@ -50,6 +50,20 @@ run
 aserto-idp-sync run --config config.yaml
 ```
 
+docker run
+
+```
+docker run -ti \
+--platform=linux/amd64 \
+--name aserto-idp-sync \
+--rm \
+-p 8282:8282 \
+-p 8383:8383 \
+-p 8484:8484 \
+-v $PWD:/cfg \
+ghcr.io/aserto-dev/aserto-idp-sync run --config=/cfg/config-dev.yaml
+```
+
 grpcurl
 
 ```
