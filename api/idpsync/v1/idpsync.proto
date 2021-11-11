@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package idpsync.v1;
+
+option go_package = "github.com/aserto-dev/aserto-idp-sync/gen/proto/go/idpsync/v1;idpsync"; 
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// OpenAPI annotations.
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {}
+    security: {}
+};
+
+service IDPSync {
+    rpc SyncUser(SyncUserRequest) returns (SyncUserResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/sync/user"
+            body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            tags: "sync"
+            summary: "Sync user"
+            description: "Triggers sync of IDP user to directory."
+            operation_id: "sync.user"
+            deprecated: false
+            security: {}
+        };
+    }
+}
+
+message SyncUserRequest {
+    string email_address = 1; 
+}
+
+message SyncUserResponse {
+}
