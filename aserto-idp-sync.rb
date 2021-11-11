@@ -6,29 +6,29 @@ require_relative "lib/custom_download_strategy"
 class AsertoIdpSync < Formula
   desc "Aserto IDP Sync"
   homepage "https://aserto.com/"
-  version "0.0.2"
+  version "0.0.3"
   license "apache-2"
   bottle :unneeded
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.2/aserto-idp-sync0.0.2_darwin_x86_64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "a0e6851d5afe0129918dcd4ea4db86b4ba00b7341471908efae9ce15c0698560"
+      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.3/aserto-idp-sync0.0.3_darwin_x86_64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
+      sha256 "8948059e332d00226c506a4189016126cdfed313d1bf6bfbc081eda33941a386"
     end
     if Hardware::CPU.arm?
-      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.2/aserto-idp-sync0.0.2_darwin_arm64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "4d369935984445a1bd19b19b8bbfc937b88f3b475dd46e8ae93daf561e0e9070"
+      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.3/aserto-idp-sync0.0.3_darwin_arm64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
+      sha256 "03335f11e303e1236b908667d34ca046e8345fa7b62264b1739d3b8230cb00c1"
     end
   end
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.2/aserto-idp-sync0.0.2_linux_x86_64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "dfd9b19cbc6d3fe372eb7a244e57f4a0b2de063d8c3a7a0ba9e8415f1d09509d"
+      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.3/aserto-idp-sync0.0.3_linux_x86_64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
+      sha256 "04708576677f5d650a1263112c4f6d57234f35f52a52b6088591d25477b9ccea"
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.2/aserto-idp-sync0.0.2_linux_arm64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "c6a5f30b8bfc7025f45bc72d227ac310f501b023f57d06d107e81a45d2d865fa"
+      url "https://github.com/aserto-dev/aserto-idp-sync/releases/download/v0.0.3/aserto-idp-sync0.0.3_linux_arm64.zip", :using => CustomGitHubPrivateRepositoryReleaseDownloadStrategy
+      sha256 "d8e7e2630952c59208f8bf0ce776d1ef1253c0bcad3521722c680ba54393ca91"
     end
   end
 
