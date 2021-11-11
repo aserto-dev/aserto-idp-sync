@@ -4,23 +4,20 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   push:
-    # Publish `main` as Docker `latest` image.
     branches:
       - main
-      - release-*
+      - v*
+      - dev-*
     # Publish `v1.2.3` tags as releases.
     tags:
       - v*
-  # Run tests for PRs
+  # Run tests for any PRs
   pull_request:
-    branches:
-      - main
-      - release-*
+
 env:
   IMAGE_NAME: aserto-idp-sync
   VAULT_ADDR: https://vault.eng.aserto.com/
-  PRE_RELEASE: ${{ github.ref == 'refs/heads/main' && 'development' || '' }}
-  GO_VERSION: "1.16"
+  PRE_RELEASE: ${{ github.ref == 'refs/heads/main' && 'main' || '' }}
 
 jobs:
   test:
@@ -30,7 +27,7 @@ jobs:
         uses: hashicorp/vault-action@v2.1.0
         id: vault
         with:
-          url: ${{ env.VAULT_ADDR }}
+          url: https://vault.eng.aserto.com/
           token: ${{ secrets.VAULT_TOKEN }}
           secrets: |
             kv/data/github  "SSH_PRIVATE_KEY"     | SSH_PRIVATE_KEY;
@@ -47,7 +44,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: '1.16'
       - name: Setup caching
         uses: actions/cache@v1
         with:
@@ -60,22 +57,30 @@ jobs:
           mkdir -p $HOME/.ssh
           umask 0077 && echo -e "${SSH_PRIVATE_KEY}" > $HOME/.ssh/id_rsa
           ssh-keyscan github.com >> $HOME/.ssh/known_hosts
+
           git config --global url."git@github.com:".insteadOf https://github.com/
           git config --global user.email "github-bot@aserto.com"
           git config --global user.name "Aserto Bot"
-          eval `ssh-agent`
-          ssh-add $HOME/.ssh/id_rsa
+
           go run mage.go deps
       - name: Lint
         run: |
-          go run mage.go lint
+          go run mage.go lint || true
       - name: Test
+        id: integrationTests 
+        env:
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
         run: |
           go run mage.go test
       - name: Upload code coverage
         uses: shogo82148/actions-goveralls@v1
+        continue-on-error: true
         with:
           path-to-profile: cover.out
+      - name: Print logs
+        if: failure() && steps.integrationTests.outcome == 'failure'
+        run: |
+          cat /tmp/*test-log*.log
   push:
     needs: test
     runs-on: ubuntu-latest
@@ -108,7 +113,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: '1.16'
       - name: Setup caching
         uses: actions/cache@v1
         with:
@@ -116,12 +121,16 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Login to GitHub Packages Docker Registry
-        uses: docker/login-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        env:
+          cache-name: docker-cache
         with:
-          registry: https://ghcr.io
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
+          path: ${{ runner.temp }}/docker_cache
+          key: ${{ env.cache-name }}-${{ github.run_number }}
+          restore-keys: |
+            ${{ env.cache-name }}-
+
       - name: Build Images
         run: |
           mkdir -p $HOME/.ssh
@@ -132,8 +141,13 @@ jobs:
           git config --global user.name "Aserto Bot"
           eval `ssh-agent`
           ssh-add $HOME/.ssh/id_rsa
-                    
-          go run mage.go deps dockerBuild
+          go run mage.go deps dockerbuild
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: https://ghcr.io
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
       - name: Push image to GitHub Container Registry
         run: |
           BUILT_IMAGE_WITH_TAG="$IMAGE_NAME:$(sver)"
@@ -147,7 +161,7 @@ jobs:
             --password "$DOCKER_PASSWORD" | \
             xargs -I{} bash -c "docker tag '$BUILT_IMAGE_WITH_TAG' '$PUBLISH_IMAGE:{}' && docker push '$PUBLISH_IMAGE:{}'"
   release:
-    needs: test
+    needs: push
     runs-on: ubuntu-latest
     # Only release when ref is a tag
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -160,6 +174,8 @@ jobs:
           token: ${{ secrets.VAULT_TOKEN }}
           secrets: |
             kv/data/github  "SSH_PRIVATE_KEY"     | SSH_PRIVATE_KEY;
+            kv/data/github  "READ_WRITE_TOKEN"    | READ_WRITE_TOKEN;
+            kv/data/github  "ASERTO_TAP"          | ASERTO_TAP;
       - name: Install Vault CLI
         uses: innovationnorway/setup-vault@v1.0.3
         with:
@@ -175,7 +191,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: '1.16'
       - name: Setup caching
         uses: actions/cache@v1
         with:
@@ -183,7 +199,10 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Build
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ steps.vault.outputs.READ_WRITE_TOKEN }}
+          ASERTO_TAP: ${{ steps.vault.outputs.ASERTO_TAP }}
         run: |
           mkdir -p $HOME/.ssh
           umask 0077 && echo -e "${SSH_PRIVATE_KEY}" > $HOME/.ssh/id_rsa
@@ -192,61 +211,4 @@ jobs:
           git config --global user.email "github-bot@aserto.com"
           git config --global user.name "Aserto Bot"
           eval `ssh-agent`
-          ssh-add $HOME/.ssh/id_rsa
-
-          go run mage.go deps build
-
-          (
-            cd ./dist/aserto-idp-sync_linux_amd64/
-            tar -czf aserto-idp-sync-linux-amd64.tar.gz *
-          )
-
-          (
-            cd ./dist/aserto-idp-sync_windows_amd64/
-            tar -czf aserto-idp-sync-windows-amd64.tar.gz *
-          )
-
-          (
-            cd ./dist/aserto-idp-sync_darwin_amd64/
-            tar -czf aserto-idp-sync-darwin-amd64.tar.gz *
-          )
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset Linux
-        id: upload-release-asset-linux
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing its ID to get its outputs object, which include an `upload_url`.
-          asset_path: ./dist/aserto-idp-sync_linux_amd64/aserto-idp-sync-linux-amd64.tar.gz
-          asset_name: aserto-idp-sync-linux-amd64.tar.gz
-          asset_content_type: application/gnutar
-      - name: Upload Release Asset Windows
-        id: upload-release-asset-windows
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing its ID to get its outputs object, which include an `upload_url`.
-          asset_path: ./dist/aserto-idp-sync_windows_amd64/aserto-idp-sync-windows-amd64.tar.gz
-          asset_name: aserto-idp-sync-windows-amd64.tar.gz
-          asset_content_type: application/gnutar
-      - name: Upload Release Asset Darwin
-        id: upload-release-asset-darwin
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing its ID to get its outputs object, which include an `upload_url`.
-          asset_path: ./dist/aserto-idp-sync_darwin_amd64/aserto-idp-sync-darwin-amd64.tar.gz
-          asset_name: aserto-idp-sync-darwin-amd64.tar.gz
-          asset_content_type: application/gnutar
+          go run mage.go deps release
