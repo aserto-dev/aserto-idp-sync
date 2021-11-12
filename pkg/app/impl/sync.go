@@ -75,8 +75,13 @@ func (s *IDPSync) upsert(email string, user *api.User) (*api.User, error) {
 		return &api.User{}, errors.Wrapf(err, "create gRPC directory connection")
 	}
 
+	identity, err := getVerifiedIdentity(user)
+	if err != nil {
+		return &api.User{}, errors.Wrapf(err, "no verified identity found for user [%s]", email)
+	}
+
 	identResp, err := c.Directory.GetIdentity(ctx, &directory.GetIdentityRequest{
-		Identity: email,
+		Identity: identity,
 	})
 
 	var newUser *api.User
@@ -105,4 +110,13 @@ func (s *IDPSync) upsert(email string, user *api.User) (*api.User, error) {
 	}
 
 	return newUser, nil
+}
+
+func getVerifiedIdentity(user *api.User) (string, error) {
+	for identity, identitySource := range user.Identities {
+		if identitySource.Verified {
+			return identity, nil
+		}
+	}
+	return "", errors.Errorf("no verified identity found")
 }
