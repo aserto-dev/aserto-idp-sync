@@ -1,6 +1,8 @@
 .DS_Store
-cover.out
-.vscode/launch.json
-.dev/
-.ext/
-dist/
+
+/cover.out
+/.vscode/launch.json
+
+/.dev/
+/.ext/
+/dist/

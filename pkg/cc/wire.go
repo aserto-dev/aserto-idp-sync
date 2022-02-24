@@ -4,8 +4,6 @@
 package cc
 
 import (
-	"io"
-
 	"github.com/aserto-dev/go-utils/certs"
 	"github.com/aserto-dev/go-utils/logger"
 	"github.com/google/wire"
@@ -21,10 +19,9 @@ var (
 		config.NewLoggerConfig,
 		logger.NewLogger,
 		certs.NewGenerator,
-		wire.FieldsOf(new(config.Config), "Logging"),
-		wire.FieldsOf(new(*cc_context.ErrGroupAndContext), "Ctx", "ErrGroup"),
 
 		wire.Struct(new(CC), "*"),
+		wire.FieldsOf(new(*cc_context.ErrGroupAndContext), "Ctx", "ErrGroup"),
 	)
 
 	ccTestSet = wire.NewSet(
@@ -36,20 +33,20 @@ var (
 		config.NewLoggerConfig,
 		logger.NewLogger,
 		certs.NewGenerator,
-		wire.FieldsOf(new(*cc_context.ErrGroupAndContext), "Ctx", "ErrGroup"),
 
 		wire.Struct(new(CC), "*"),
+		wire.FieldsOf(new(*cc_context.ErrGroupAndContext), "Ctx", "ErrGroup"),
 	)
 )
 
 // buildCC sets up the CC struct that contains all dependencies that
 // are cross cutting
-func buildCC(logOutput io.Writer, configPath config.Path, overrides config.Overrider) (*CC, func(), error) {
+func buildCC(logOutput logger.Writer, errOutput logger.ErrWriter, configPath config.Path, overrides config.Overrider) (*CC, func(), error) {
 	wire.Build(ccSet)
 	return &CC{}, func() {}, nil
 }
 
-func buildTestCC(logOutput io.Writer, configPath config.Path, overrides config.Overrider) (*CC, func(), error) {
+func buildTestCC(logOutput logger.Writer, errOutput logger.ErrWriter, configPath config.Path, overrides config.Overrider) (*CC, func(), error) {
 	wire.Build(ccTestSet)
 	return &CC{}, func() {}, nil
 }

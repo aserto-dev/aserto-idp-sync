@@ -18,6 +18,7 @@ func (r *RunCmd) Run(globals *Globals) error {
 
 	appInstance, cleanup, err := app.BuildIdpsync(
 		os.Stdout,
+		os.Stderr,
 		config.Path(configFile),
 		func(*config.Config) {})
 
@@ -48,6 +49,7 @@ func (cmd *VersionCmd) Run(globals *Globals) error {
 
 	appInstance, cleanup, err := app.BuildIdpsync(
 		os.Stdout,
+		os.Stderr,
 		config.Path(configFile),
 		func(*config.Config) {})
 

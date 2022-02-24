@@ -7,36 +7,36 @@
 package app
 
 import (
+	"github.com/aserto-dev/go-utils/logger"
 	"github.com/aserto-dev/idpsync/pkg/app/impl"
 	"github.com/aserto-dev/idpsync/pkg/app/server"
 	"github.com/aserto-dev/idpsync/pkg/cc"
 	"github.com/aserto-dev/idpsync/pkg/cc/config"
 	"github.com/google/wire"
-	"io"
 )
 
 // Injectors from wire.go:
 
-func BuildIdpsync(logWriter io.Writer, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
-	ccCC, cleanup, err := cc.NewCC(logWriter, configPath, overrides)
+func BuildIdpsync(logOutput logger.Writer, errOutput logger.ErrWriter, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
+	ccCC, cleanup, err := cc.NewCC(logOutput, errOutput, configPath, overrides)
 	if err != nil {
 		return nil, nil, err
 	}
 	context := ccCC.Context
-	logger := ccCC.Log
+	zerologLogger := ccCC.Log
 	configConfig := ccCC.Config
 	group := ccCC.ErrGroup
-	idpSync := impl.NewIDPSync(logger, configConfig)
+	idpSync := impl.NewIDPSync(zerologLogger, configConfig)
 	registrations := GRPCServerRegistrations(idpSync)
 	handlerRegistrations := GatewayServerRegistrations()
-	serverServer, err := server.NewServer(context, configConfig, logger, group, registrations, handlerRegistrations)
+	serverServer, err := server.NewServer(context, configConfig, zerologLogger, group, registrations, handlerRegistrations)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	app := &App{
 		Context:       context,
-		Logger:        logger,
+		Logger:        zerologLogger,
 		Configuration: configConfig,
 		Server:        serverServer,
 	}
@@ -45,26 +45,26 @@ func BuildIdpsync(logWriter io.Writer, configPath config.Path, overrides config.
 	}, nil
 }
 
-func BuildTestIdpsync(logWriter io.Writer, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
-	ccCC, cleanup, err := cc.NewTestCC(logWriter, configPath, overrides)
+func BuildTestIdpsync(logOutput logger.Writer, errOutput logger.ErrWriter, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
+	ccCC, cleanup, err := cc.NewTestCC(logOutput, errOutput, configPath, overrides)
 	if err != nil {
 		return nil, nil, err
 	}
 	context := ccCC.Context
-	logger := ccCC.Log
+	zerologLogger := ccCC.Log
 	configConfig := ccCC.Config
 	group := ccCC.ErrGroup
-	idpSync := impl.NewIDPSync(logger, configConfig)
+	idpSync := impl.NewIDPSync(zerologLogger, configConfig)
 	registrations := GRPCServerRegistrations(idpSync)
 	handlerRegistrations := GatewayServerRegistrations()
-	serverServer, err := server.NewServer(context, configConfig, logger, group, registrations, handlerRegistrations)
+	serverServer, err := server.NewServer(context, configConfig, zerologLogger, group, registrations, handlerRegistrations)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	app := &App{
 		Context:       context,
-		Logger:        logger,
+		Logger:        zerologLogger,
 		Configuration: configConfig,
 		Server:        serverServer,
 	}

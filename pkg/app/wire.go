@@ -4,8 +4,7 @@
 package app
 
 import (
-	"io"
-
+	"github.com/aserto-dev/go-utils/logger"
 	"github.com/aserto-dev/idpsync/pkg/app/impl"
 	"github.com/aserto-dev/idpsync/pkg/app/server"
 	"github.com/aserto-dev/idpsync/pkg/cc"
@@ -41,7 +40,7 @@ var (
 	)
 )
 
-func BuildIdpsync(logWriter io.Writer, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
+func BuildIdpsync(logOutput logger.Writer, errOutput logger.ErrWriter, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
 	wire.Build(
 		wire.Struct(new(App), "*"),
 		appSet,
@@ -49,7 +48,7 @@ func BuildIdpsync(logWriter io.Writer, configPath config.Path, overrides config.
 	return &App{}, func() {}, nil
 }
 
-func BuildTestIdpsync(logWriter io.Writer, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
+func BuildTestIdpsync(logOutput logger.Writer, errOutput logger.ErrWriter, configPath config.Path, overrides config.Overrider) (*App, func(), error) {
 	wire.Build(
 		wire.Struct(new(App), "*"),
 		appTestSet,

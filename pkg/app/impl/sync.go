@@ -3,10 +3,10 @@ package impl
 import (
 	"context"
 
-	aserto "github.com/aserto-dev/aserto-go/client"
-	client "github.com/aserto-dev/aserto-go/client/grpc"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
-	"github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
+	"github.com/aserto-dev/aserto-go/client"
+	"github.com/aserto-dev/aserto-go/client/authorizer"
+	api "github.com/aserto-dev/go-grpc/aserto/api/v1"
+	directory "github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
 	"github.com/aserto-dev/idpsync/api/idpsync/v1"
 	"github.com/aserto-dev/idpsync/pkg/auth0"
 	"github.com/aserto-dev/idpsync/pkg/cc/config"
@@ -66,10 +66,10 @@ func (s *IDPSync) SyncUser(ctx context.Context, req *idpsync.SyncUserRequest) (*
 func (s *IDPSync) upsert(email string, user *api.User) (*api.User, error) {
 	ctx := context.Background()
 
-	c, err := client.New(
+	c, err := authorizer.New(
 		ctx,
-		aserto.WithAPIKeyAuth(s.cfg.Directory.DirectoryAPIKey),
-		aserto.WithTenantID(s.cfg.Directory.TenantID),
+		client.WithAPIKeyAuth(s.cfg.Directory.DirectoryAPIKey),
+		client.WithTenantID(s.cfg.Directory.TenantID),
 	)
 	if err != nil {
 		return &api.User{}, errors.Wrapf(err, "create gRPC directory connection")
