@@ -6,11 +6,10 @@ import (
 	"time"
 )
 
-// values set by linker using ldflag -X
 var (
-	ver    string // nolint:gochecknoglobals // set by linker
-	date   string // nolint:gochecknoglobals // set by linker
-	commit string // nolint:gochecknoglobals // set by linker
+	ver    string //nolint:gochecknoglobals // set by linker
+	date   string //nolint:gochecknoglobals // set by linker
+	commit string //nolint:gochecknoglobals // set by linker
 )
 
 // Info - version info.
@@ -20,7 +19,7 @@ type Info struct {
 	Commit  string
 }
 
-// GetInfo gets version stamp information.
+// GetInfo - get version stamp information.
 func GetInfo() Info {
 	if ver == "" {
 		ver = "0.0.0"
@@ -41,7 +40,7 @@ func GetInfo() Info {
 	}
 }
 
-// String() returns the version info string.
+// String() -- return version info string.
 func (vi Info) String() string {
 	return fmt.Sprintf("%s g%s %s-%s [%s]",
 		vi.Version,

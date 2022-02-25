@@ -1,7 +1,7 @@
 package config
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -142,7 +142,7 @@ func NewConfig(configPath Path, log *zerolog.Logger, overrides Overrider, certsG
 
 // NewLoggerConfig creates a new LoggerConfig
 func NewLoggerConfig(configPath Path, overrides Overrider) (*logger.Config, error) {
-	discardLogger := zerolog.New(ioutil.Discard)
+	discardLogger := zerolog.New(io.Discard)
 	cfg, err := NewConfig(configPath, &discardLogger, overrides, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new config")

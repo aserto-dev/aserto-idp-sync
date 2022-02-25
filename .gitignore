@@ -1,5 +1,6 @@
 .DS_Store
 
+/aserto-idp-sync
 /cover.out
 /.vscode/launch.json
 
