@@ -13,7 +13,7 @@ bin:
     url: 'https://github.com/protocolbuffers/protobuf/releases/download/v{{.Version}}/protoc-{{.Version}}-{{if eq .OS "darwin"}}osx{{else}}{{.OS}}{{end}}-x86_64.zip'
     version: "3.19.4"
     sha:
-      linux-amd64: "d4246a5136cf9cd1abc851c521a1ad6b8884df4feded8b9cbd5e2a2226d4b357"
+      linux-amd64: "058d29255a08f8661c8096c92961f3676218704cbd516d3916ec468e139cbd87"
       darwin-amd64: "d8b55cf1e887917dd43c447d77bd5bd213faff1e18ac3a176b35558d86f7ffff"
       darwin-arm64: "d8b55cf1e887917dd43c447d77bd5bd213faff1e18ac3a176b35558d86f7ffff"
     zipPaths:
